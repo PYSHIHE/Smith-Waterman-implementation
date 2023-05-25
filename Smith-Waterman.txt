@@ -1,0 +1,95 @@
+import numpy as np
+# 計算兩元素相似性得分    
+def similarity_score(index2,index1):
+    if sequence1[index2-1]==sequence2[index1-1]:
+        return 3
+    else:
+        return -3
+
+# 計算Smithh-Waterman矩陣裡的所有元素值   
+def matrix_score(index2,index1,w):
+    result=[]
+    s=similarity_score(index2,index1)
+    result.append(H_matrix[index1-1][index2-1]+s)
+    result.append(H_matrix[index1-1][index2]-w)
+    result.append(H_matrix[index1][index2-1]-w)
+    result.append(0)
+    return max(result)
+#找出矩陣中的最大值
+def max_dim(H_matrix):
+    _max=0
+    for i in range(1,len(H_matrix)):
+        for j in range(1,len(H_matrix[0])):
+            if H_matrix[i][j]>=_max:
+                _max=H_matrix[i][j]
+                index3=i
+                index4=j
+    return _max,index3,index4    
+            
+
+sequence1= input('Please input your first gene sequence:')   
+sequence2= input('Please input your second gene sequence:')       
+        
+
+
+H_matrix=[[0]*(len(sequence1)+1) for row in range(len(sequence2)+1)] #建立一矩陣並將所有元素初始化為0
+W=2 #空位罰分
+sequenceA='' #建立兩個字串變數儲存最後alignment結果
+sequenceB=''
+H_matrix=np.array(H_matrix)
+
+
+for index1 in range(1,len(sequence2)+1): #建立出smith-waterman matrix
+    for index2 in range(1,len(sequence1)+1):
+        similarity_score(index2,index1)
+        H_matrix[index1][index2]=matrix_score(index2,index1 ,2)
+   
+print('H_matrix:\n',H_matrix)
+print('max_dim:',max_dim(H_matrix))
+
+maximum,id3,id4=max_dim(H_matrix) #找出matrix中最大元素並回傳此元素的index
+id5=id3
+id6=id4
+
+   
+id4=id4-1
+id3=id3-1  
+      
+while True:#進行traceback
+    if id4==-1 or id3==-1:
+        break
+    if sequence1[id4]==sequence2[id3]: #以matrix中最大值並以此為起點開始traceback
+        sequenceA+=sequence1[id4]
+        sequenceB+=sequence2[id3]
+        id4=id4-1
+        id3=id3-1
+         
+    else:
+        trace=[H_matrix[id3-1][id4],H_matrix[id3-1][id4-1],H_matrix[id3][id4-1]]
+        m=max(trace)
+        if trace.index(m)==0:
+            sequenceA+='_'
+            sequenceB+=sequence2[id3]
+            id3=id3-1
+            id4=id4
+            
+        elif trace.index(m)==1:
+            sequenceA+=sequence1[id4]
+            sequenceB+=sequence2[id3]
+            id3=id3-1
+            id4=id4-1
+            
+        else:
+            sequenceA+=sequence1[id4]
+            sequenceB+='_'
+            id3=id3
+            id4=id4-1
+            
+       
+print('----------------------')
+print('original sequenceA:',sequence1)
+print('original sequenceB:',sequence2)
+sequenceA=sequenceA[::-1]+sequence1[id6::]
+sequenceB=sequenceB[::-1]+sequence2[id5::]
+print('aligned sequenceA:',sequenceA)
+print('aligned sequenceB:',sequenceB)  
